@@ -117,7 +117,20 @@ class Post extends API
 
     public function delete($args)
     {
-        // TODO: Implement delete() method.
+        if (sizeof($args) == 1) {
+            if ($args[0] > 0) {
+                $user = $this->userModel->current();
+                if ($user) {
+                    return $this->postModel->deleteOne($args[0]);
+                } else {
+                    throw new Exception("Unauthorized!");
+                }
+            } else {
+                throw new Exception("Invalid!");
+            }
+        } else {
+            throw new Exception("Invalid!");
+        }
     }
 
     public function put($args)

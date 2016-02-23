@@ -8,7 +8,7 @@
  * Controller of the simpleBlogApp
  */
 angular.module('simpleBlogApp')
-  .controller('MainCtrl', function ($scope, $http, $rootScope) {
+  .controller('MainCtrl', function ($scope, $http, $rootScope, $window) {
     $rootScope.title = "Simple Blog - Home";
     if ($rootScope.user != null)
       $scope.userId = $rootScope.user.id;
@@ -19,4 +19,12 @@ angular.module('simpleBlogApp')
         $scope.posts[i].content = response.data[i].content.substring(0, 400);
       }
     });
+
+    $scope.delete = function (id) {
+      if (confirm('Are you sure to delete this post?')) {
+        $http.delete('/api/post/'+id).then(function () {
+          $window.location = '/';
+        });
+      }
+    };
   });

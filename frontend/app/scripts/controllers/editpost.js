@@ -35,6 +35,9 @@ angular.module('simpleBlogApp')
           $window.location.href = "/";
         }
 
+      }, function (error) {
+        console.log(error);
+        $window.location = "/";
       });
       $scope.update = function () {
         Upload.upload({
@@ -54,4 +57,12 @@ angular.module('simpleBlogApp')
     } else {
       $window.location.href = "/";
     }
+
+    $scope.posts = [];
+    $http.get('/api/post').then(function (response) {
+      $scope.posts = response.data;
+      for (var i=0;i<$scope.posts.length;i++){
+        $scope.posts[i].content = response.data[i].content.substring(0, 400);
+      }
+    });
   });

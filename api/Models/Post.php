@@ -35,12 +35,16 @@ class Post extends Model
 
     public function getById($id) {
         $post = $this->database->get($this->table,"*",["id" => $id]);
-        $dateTime = new DateTime($post["created_at"]);
-        $post["created_at"] = $dateTime->getTimestamp()*1000;
-        $post["user"] = $this->userModel->getById($post["user_id"]);
-        $post["comments"] = $this->commentModel->getByPost($post["id"]);
-        unset($post["user_id"]);
-        return $post;
+        if ($post) {
+            $dateTime = new DateTime($post["created_at"]);
+            $post["created_at"] = $dateTime->getTimestamp()*1000;
+            $post["user"] = $this->userModel->getById($post["user_id"]);
+            $post["comments"] = $this->commentModel->getByPost($post["id"]);
+            unset($post["user_id"]);
+            return $post;
+        } else {
+            throw new Exception("Failed");
+        }
     }
 
     public function getAll() {

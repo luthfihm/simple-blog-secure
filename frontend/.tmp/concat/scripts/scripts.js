@@ -99,7 +99,7 @@ angular
  * Controller of the simpleBlogApp
  */
 angular.module('simpleBlogApp')
-  .controller('MainCtrl', ["$scope", "$http", "$rootScope", function ($scope, $http, $rootScope) {
+  .controller('MainCtrl', ["$scope", "$http", "$rootScope", "$window", function ($scope, $http, $rootScope, $window) {
     $rootScope.title = "Simple Blog - Home";
     if ($rootScope.user != null)
       $scope.userId = $rootScope.user.id;
@@ -110,6 +110,14 @@ angular.module('simpleBlogApp')
         $scope.posts[i].content = response.data[i].content.substring(0, 400);
       }
     });
+
+    $scope.delete = function (id) {
+      if (confirm('Are you sure to delete this post?')) {
+        $http.delete('/api/post/'+id).then(function () {
+          $window.location = '/';
+        });
+      }
+    };
   }]);
 
 'use strict';
@@ -140,12 +148,15 @@ angular.module('simpleBlogApp')
  * Controller of the simpleBlogApp
  */
 angular.module('simpleBlogApp')
-  .controller('PostCtrl', ["$scope", "$routeParams", "$rootScope", "$http", "$cookies", function ($scope, $routeParams, $rootScope, $http, $cookies) {
+  .controller('PostCtrl', ["$scope", "$routeParams", "$rootScope", "$http", "$window", function ($scope, $routeParams, $rootScope, $http, $window) {
     $scope.user = $rootScope.user;
     $scope.post = {};
     $http.get("/api/post/"+$routeParams.id).then(function (response) {
       $scope.post = response.data;
       $rootScope.title = "Simple Blog - "+$scope.post.title;
+    }, function (error) {
+      console.log(error);
+      $window.location = "/";
     });
     $scope.comment = {};
     $scope.addComment = function () {
@@ -158,6 +169,21 @@ angular.module('simpleBlogApp')
         });
       });
     };
+    $scope.delete = function (id) {
+      if (confirm('Are you sure to delete this post?')) {
+        $http.delete('/api/post/'+id).then(function () {
+          $window.location = '/';
+        });
+      }
+    };
+
+    $scope.posts = [];
+    $http.get('/api/post').then(function (response) {
+      $scope.posts = response.data;
+      for (var i=0;i<$scope.posts.length;i++){
+        $scope.posts[i].content = response.data[i].content.substring(0, 400);
+      }
+    });
   }]);
 
 'use strict';
@@ -212,6 +238,14 @@ angular.module('simpleBlogApp')
     } else {
       $window.location.href = "/";
     }
+
+    $scope.posts = [];
+    $http.get('/api/post').then(function (response) {
+      $scope.posts = response.data;
+      for (var i=0;i<$scope.posts.length;i++){
+        $scope.posts[i].content = response.data[i].content.substring(0, 400);
+      }
+    });
   }]);
 
 'use strict';
@@ -276,6 +310,9 @@ angular.module('simpleBlogApp')
           $window.location.href = "/";
         }
 
+      }, function (error) {
+        console.log(error);
+        $window.location = "/";
       });
       $scope.update = function () {
         Upload.upload({
@@ -295,6 +332,14 @@ angular.module('simpleBlogApp')
     } else {
       $window.location.href = "/";
     }
+
+    $scope.posts = [];
+    $http.get('/api/post').then(function (response) {
+      $scope.posts = response.data;
+      for (var i=0;i<$scope.posts.length;i++){
+        $scope.posts[i].content = response.data[i].content.substring(0, 400);
+      }
+    });
   }]);
 
 angular.module('simpleBlogApp').run(['$templateCache', function($templateCache) {
@@ -306,22 +351,22 @@ angular.module('simpleBlogApp').run(['$templateCache', function($templateCache) 
 
 
   $templateCache.put('views/editpost.html',
-    "<div class=\"row\"> <!-- Blog Post Content Column --> <div class=\"col-lg-8\"> <form ng-submit=\"update()\"> <!-- Title --> <div class=\"form-group\"> <input type=\"text\" class=\"form-control input-lg\" ng-model=\"post.title\" placeholder=\"Blog Post Title\"> </div> <hr> <!-- Preview Image --> <div ngf-drop ngf-select ng-model=\"post.image\" ngf-drag-over-class=\"'dragover'\" ngf-multiple=\"false\" accept=\"image/*\" ngf-pattern=\"'image/*'\"> <div class=\"drop-box\" ng-hide=\"post.image\">Drop images here or click to add image</div> <img class=\"img-responsive\" alt=\"\" src=\"{{imageSrc}}\" ng-hide=\"!post.image\"> </div> <div ngf-no-file-drop>File Drag/Drop is not supported for this browser</div> <hr> <div class=\"form-group\"> <textarea class=\"form-control\" rows=\"20\" ng-model=\"post.content\"></textarea> </div> <hr> <button type=\"submit\" class=\"btn btn-primary btn-lg\">Update</button> </form> </div> <!-- Blog Sidebar Widgets Column --> <div class=\"col-md-4\"> <!-- Blog Search Well --> <div class=\"well\"> <h4>Blog Search</h4> <div class=\"input-group\"> <input type=\"text\" class=\"form-control\"> <span class=\"input-group-btn\"> <button class=\"btn btn-default\" type=\"button\"> <span class=\"glyphicon glyphicon-search\"></span> </button> </span> </div> <!-- /.input-group --> </div> <!-- Blog Categories Well --> <div class=\"well\"> <h4>Blog Categories</h4> <div class=\"row\"> <div class=\"col-lg-6\"> <ul class=\"list-unstyled\"> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> </ul> </div> <div class=\"col-lg-6\"> <ul class=\"list-unstyled\"> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> </ul> </div> </div> <!-- /.row --> </div> <!-- Side Widget Well --> <div class=\"well\"> <h4>Side Widget Well</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore, perspiciatis adipisci accusamus laudantium odit aliquam repellat tempore quos aspernatur vero.</p> </div> </div> </div> <!-- /.row -->"
+    "<div class=\"row\"> <!-- Blog Post Content Column --> <div class=\"col-lg-8\"> <form ng-submit=\"update()\"> <!-- Title --> <div class=\"form-group\"> <input type=\"text\" class=\"form-control input-lg\" ng-model=\"post.title\" placeholder=\"Blog Post Title\"> </div> <hr> <!-- Preview Image --> <div ngf-drop ngf-select ng-model=\"post.image\" ngf-drag-over-class=\"'dragover'\" ngf-multiple=\"false\" accept=\"image/*\" ngf-pattern=\"'image/*'\"> <div class=\"drop-box\" ng-hide=\"post.image\">Drop images here or click to add image</div> <img class=\"img-responsive\" alt=\"\" src=\"{{imageSrc}}\" ng-hide=\"!post.image\"> </div> <div ngf-no-file-drop>File Drag/Drop is not supported for this browser</div> <hr> <div class=\"form-group\"> <textarea class=\"form-control\" rows=\"20\" ng-model=\"post.content\"></textarea> </div> <hr> <button type=\"submit\" class=\"btn btn-primary btn-lg\">Update</button> </form> </div> <!-- Blog Sidebar Widgets Column --> <div class=\"col-md-4\"> <!-- Blog Search Well --> <div class=\"well\"> <h4>Simple Blog</h4> <p>It's very simple blog</p> <!-- /.input-group --> </div> <!-- Blog Categories Well --> <div class=\"well\"> <h4>Latest Post</h4> <div class=\"row\" ng-repeat=\"p in posts\"> <div class=\"col-xs-3 text-center\"> <a class=\"story-img\" href=\"#/post/{{p.id}}\"><img src=\"/api/files/{{p.image}}\" style=\"width:60px;height:60px\" class=\"img-circle\"></a> </div> <div class=\"col-xs-9\"> <a href=\"#/post/{{p.id}}\"><h4>{{p.title}}</h4></a> <div class=\"row\"> <div class=\"col-xs-9\"> <ul class=\"list-inline\"> <li>{{p.created_at|timeago}}</li> <li><i class=\"glyphicon glyphicon-comment\"></i> {{p.comments.length}} Comments </li></ul></div> </div> </div> </div> <!-- /.row --> </div> <!-- Side Widget Well --> <div class=\"well\"> <h4>Quote of this day</h4> <p style=\"font-style: italic\">“Life is not complex. We are complex. Life is simple, and the simple thing is the right thing.”</p> <p>— Oscar Wilde</p> </div> </div> </div> <!-- /.row -->"
   );
 
 
   $templateCache.put('views/main.html',
-    "<div id=\"masthead\"> <div class=\"container\"> <div class=\"row\"> <div class=\"col-md-7\"> <h1>Simple Blog <p class=\"lead\">It's just Simple!</p> </h1> </div> <div class=\"col-md-5\"> <div class=\"well well-lg\"> <div class=\"row\"> <div class=\"col-sm-12\"> <p style=\"font-style: italic\">“Life is not complex. We are complex. Life is simple, and the simple thing is the right thing.”</p> <p>— Oscar Wilde</p> </div> </div> </div> </div> </div> </div><!-- /cont --> </div> <div class=\"row\"> <div class=\"col-md-12\"> <div class=\"panel\"> <div class=\"panel-body\"> <!--/stories--> <div class=\"row\" ng-repeat=\"post in posts\"> <br> <div class=\"col-md-2 col-sm-3 text-center\"> <a class=\"story-img\" href=\"#\"><img src=\"/api/files/{{post.image}}\" style=\"width:100px;height:100px\" class=\"img-circle\"></a> </div> <div class=\"col-md-10 col-sm-9\"> <h3>{{post.title}}</h3> <div class=\"row\"> <div class=\"col-xs-9\"> <p>{{post.content}}</p> <p class=\"lead\"><a href=\"#/post/{{post.id}}\" class=\"btn btn-default\">Read More</a> <a href=\"#/editpost/{{post.id}}\" class=\"btn btn-default\" ng-show=\"post.user.id == userId\">Edit</a></p> <p class=\"pull-right\"><span class=\"label label-default\">{{post.user.name}}</span></p> <ul class=\"list-inline\"> <li>{{post.created_at|timeago}}</li> <li><i class=\"glyphicon glyphicon-comment\"></i> {{post.comments.length}} Comments </li></ul></div> <div class=\"col-xs-3\"></div> </div> <br><br> </div> </div> <hr> <!--/stories--> </div> </div> </div><!--/col-12--> </div>"
+    "<div id=\"masthead\"> <div class=\"container\"> <div class=\"row\"> <div class=\"col-md-7\"> <h1>Simple Blog <p class=\"lead\">It's just Simple!</p> </h1> </div> <div class=\"col-md-5\"> <div class=\"well well-lg\"> <div class=\"row\"> <div class=\"col-sm-12\"> <p style=\"font-style: italic\">“Life is not complex. We are complex. Life is simple, and the simple thing is the right thing.”</p> <p>— Oscar Wilde</p> </div> </div> </div> </div> </div> </div><!-- /cont --> </div> <div class=\"row\"> <div class=\"col-md-12\"> <div class=\"panel\"> <div class=\"panel-body\"> <!--/stories--> <div class=\"row\" ng-repeat=\"post in posts\"> <br> <div class=\"col-md-2 col-sm-3 text-center\"> <a class=\"story-img\" href=\"#/post/{{post.id}}\"><img src=\"/api/files/{{post.image}}\" style=\"width:100px;height:100px\" class=\"img-circle\"></a> </div> <div class=\"col-md-10 col-sm-9\"> <h3>{{post.title}}</h3> <div class=\"row\"> <div class=\"col-xs-9\"> <p>{{post.content}}</p> <p class=\"lead\"><a href=\"#/post/{{post.id}}\" class=\"btn btn-default\">Read More</a> <a href=\"#/editpost/{{post.id}}\" class=\"btn btn-default\" ng-show=\"post.user.id == userId\"><i class=\"glyphicon glyphicon-pencil\"></i></a> <button class=\"btn btn-default\" ng-show=\"post.user.id == userId\" ng-click=\"delete(post.id)\"><i class=\"glyphicon glyphicon-trash\"></i></button></p> <p class=\"pull-right\"><span class=\"label label-default\">{{post.user.name}}</span></p> <ul class=\"list-inline\"> <li>{{post.created_at|timeago}}</li> <li><i class=\"glyphicon glyphicon-comment\"></i> {{post.comments.length}} Comments </li></ul></div> <div class=\"col-xs-3\"></div> </div> <br><br> </div> </div> <hr> <!--/stories--> </div> </div> </div><!--/col-12--> </div>"
   );
 
 
   $templateCache.put('views/newpost.html',
-    "<div class=\"row\"> <!-- Blog Post Content Column --> <div class=\"col-lg-8\"> <form ng-submit=\"save()\"> <!-- Title --> <div class=\"form-group\"> <input type=\"text\" class=\"form-control input-lg\" ng-model=\"post.title\" placeholder=\"Blog Post Title\"> </div> <hr> <!-- Preview Image --> <div ngf-drop ngf-select ng-model=\"post.image\" ngf-drag-over-class=\"'dragover'\" ngf-multiple=\"false\" accept=\"image/*\" ngf-pattern=\"'image/*'\"> <div class=\"drop-box\" ng-hide=\"post.image\">Drop images here or click to add image</div> <img class=\"img-responsive\" alt=\"\" src=\"{{imageSrc}}\" ng-hide=\"!post.image\"> </div> <div ngf-no-file-drop>File Drag/Drop is not supported for this browser</div> <hr> <div class=\"form-group\"> <textarea class=\"form-control\" rows=\"20\" ng-model=\"post.content\"></textarea> </div> <hr> <button type=\"submit\" class=\"btn btn-primary btn-lg\" ng-disabled=\"post.title == '' && post.image == null && post.content == ''\">Save</button> <button type=\"button\" class=\"btn btn-warning btn-lg\" ng-click=\"reset()\">Reset</button> </form> </div> <!-- Blog Sidebar Widgets Column --> <div class=\"col-md-4\"> <!-- Blog Search Well --> <div class=\"well\"> <h4>Blog Search</h4> <div class=\"input-group\"> <input type=\"text\" class=\"form-control\"> <span class=\"input-group-btn\"> <button class=\"btn btn-default\" type=\"button\"> <span class=\"glyphicon glyphicon-search\"></span> </button> </span> </div> <!-- /.input-group --> </div> <!-- Blog Categories Well --> <div class=\"well\"> <h4>Blog Categories</h4> <div class=\"row\"> <div class=\"col-lg-6\"> <ul class=\"list-unstyled\"> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> </ul> </div> <div class=\"col-lg-6\"> <ul class=\"list-unstyled\"> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> </ul> </div> </div> <!-- /.row --> </div> <!-- Side Widget Well --> <div class=\"well\"> <h4>Side Widget Well</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore, perspiciatis adipisci accusamus laudantium odit aliquam repellat tempore quos aspernatur vero.</p> </div> </div> </div> <!-- /.row -->"
+    "<div class=\"row\"> <!-- Blog Post Content Column --> <div class=\"col-lg-8\"> <form ng-submit=\"save()\"> <!-- Title --> <div class=\"form-group\"> <input type=\"text\" class=\"form-control input-lg\" ng-model=\"post.title\" placeholder=\"Blog Post Title\"> </div> <hr> <!-- Preview Image --> <div ngf-drop ngf-select ng-model=\"post.image\" ngf-drag-over-class=\"'dragover'\" ngf-multiple=\"false\" accept=\"image/*\" ngf-pattern=\"'image/*'\"> <div class=\"drop-box\" ng-hide=\"post.image\">Drop images here or click to add image</div> <img class=\"img-responsive\" alt=\"\" src=\"{{imageSrc}}\" ng-hide=\"!post.image\"> </div> <div ngf-no-file-drop>File Drag/Drop is not supported for this browser</div> <hr> <div class=\"form-group\"> <textarea class=\"form-control\" rows=\"20\" ng-model=\"post.content\"></textarea> </div> <hr> <button type=\"submit\" class=\"btn btn-primary btn-lg\" ng-disabled=\"post.title == '' && post.image == null && post.content == ''\">Save</button> <button type=\"button\" class=\"btn btn-warning btn-lg\" ng-click=\"reset()\">Reset</button> </form> </div> <!-- Blog Sidebar Widgets Column --> <div class=\"col-md-4\"> <!-- Blog Search Well --> <div class=\"well\"> <h4>Simple Blog</h4> <p>It's very simple blog</p> <!-- /.input-group --> </div> <!-- Blog Categories Well --> <div class=\"well\"> <h4>Latest Post</h4> <div class=\"row\" ng-repeat=\"p in posts\"> <div class=\"col-xs-3 text-center\"> <a class=\"story-img\" href=\"#/post/{{p.id}}\"><img src=\"/api/files/{{p.image}}\" style=\"width:60px;height:60px\" class=\"img-circle\"></a> </div> <div class=\"col-xs-9\"> <a href=\"#/post/{{p.id}}\"><h4>{{p.title}}</h4></a> <div class=\"row\"> <div class=\"col-xs-9\"> <ul class=\"list-inline\"> <li>{{p.created_at|timeago}}</li> <li><i class=\"glyphicon glyphicon-comment\"></i> {{p.comments.length}} Comments </li></ul></div> </div> </div> </div> <!-- /.row --> </div> <!-- Side Widget Well --> <div class=\"well\"> <h4>Quote of this day</h4> <p style=\"font-style: italic\">“Life is not complex. We are complex. Life is simple, and the simple thing is the right thing.”</p> <p>— Oscar Wilde</p> </div> </div> </div> <!-- /.row -->"
   );
 
 
   $templateCache.put('views/post.html',
-    "<div class=\"row\"> <!-- Blog Post Content Column --> <div class=\"col-lg-8\"> <!-- Blog Post --> <!-- Title --> <h1>{{post.title}}</h1> <!-- Author --> <p class=\"lead\"> by <a href=\"#\">{{post.user.name}}</a> </p> <hr> <!-- Date/Time --> <p><span class=\"glyphicon glyphicon-time\"></span> Posted on {{post.created_at | date:'medium'}} <a href=\"#/editpost/{{post.id}}\" class=\"btn btn-default pull-right\" ng-show=\"post.user.id == user.id\"><span class=\"glyphicon glyphicon-pencil\"></span> Edit</a></p> <hr> <!-- Preview Image --> <img class=\"img-responsive\" src=\"/api/files/{{post.image}}\" alt=\"\"> <hr> <!-- Post Content --> <p>{{post.content}}</p> <hr> <!-- Blog Comments --> <!-- Comments Form --> <div class=\"well\" ng-hide=\"!user\"> <h4>Leave a Comment:</h4> <form role=\"form\" ng-submit=\"addComment()\"> <div class=\"form-group\"> <textarea class=\"form-control\" rows=\"3\" ng-model=\"comment.text\"></textarea> </div> <button type=\"submit\" class=\"btn btn-primary\">Submit</button> </form> </div> <div class=\"well\" ng-show=\"!user\"> <h4>Please login to add comment to this post!</h4> </div> <hr> <!-- Posted Comments --> <!-- Comment --> <div class=\"media\" ng-repeat=\"comment in post.comments\"> <a class=\"pull-left\" href=\"#\"> <img class=\"media-object\" src=\"http://placehold.it/64x64\" alt=\"\"> </a> <div class=\"media-body\"> <h4 class=\"media-heading\">{{comment.user.name}} <small>{{comment.time|timeago}}</small> </h4> {{comment.text}} </div> </div> </div> <!-- Blog Sidebar Widgets Column --> <div class=\"col-md-4\"> <!-- Blog Search Well --> <div class=\"well\"> <h4>Blog Search</h4> <div class=\"input-group\"> <input type=\"text\" class=\"form-control\"> <span class=\"input-group-btn\"> <button class=\"btn btn-default\" type=\"button\"> <span class=\"glyphicon glyphicon-search\"></span> </button> </span> </div> <!-- /.input-group --> </div> <!-- Blog Categories Well --> <div class=\"well\"> <h4>Blog Categories</h4> <div class=\"row\"> <div class=\"col-lg-6\"> <ul class=\"list-unstyled\"> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a>= </li> </ul> </div> <div class=\"col-lg-6\"> <ul class=\"list-unstyled\"> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> <li><a href=\"#\">Category Name</a> </li> </ul> </div> </div> <!-- /.row --> </div> <!-- Side Widget Well --> <div class=\"well\"> <h4>Side Widget Well</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore, perspiciatis adipisci accusamus laudantium odit aliquam repellat tempore quos aspernatur vero.</p> </div> </div> </div> <!-- /.row -->"
+    "<div class=\"row\"> <!-- Blog Post Content Column --> <div class=\"col-lg-8\"> <!-- Blog Post --> <!-- Title --> <h1>{{post.title}}</h1> <!-- Author --> <p class=\"lead\"> by <a href=\"#\">{{post.user.name}}</a> </p> <hr> <!-- Date/Time --> <p> <span class=\"glyphicon glyphicon-time\"></span> Posted on {{post.created_at | date:'medium'}} <button ng-click=\"delete(post.id)\" class=\"btn btn-default pull-right\" ng-show=\"post.user.id == user.id\"><span class=\"glyphicon glyphicon-trash\"></span> Hapus</button> <a href=\"#/editpost/{{post.id}}\" class=\"btn btn-default pull-right\" ng-show=\"post.user.id == user.id\"><span class=\"glyphicon glyphicon-pencil\"></span> Edit</a> </p> <hr> <!-- Preview Image --> <img class=\"img-responsive\" src=\"/api/files/{{post.image}}\" alt=\"\"> <hr> <!-- Post Content --> <p>{{post.content}}</p> <hr> <!-- Blog Comments --> <!-- Comments Form --> <div class=\"well\" ng-hide=\"!user\"> <h4>Leave a Comment:</h4> <form role=\"form\" ng-submit=\"addComment()\"> <div class=\"form-group\"> <textarea class=\"form-control\" rows=\"3\" ng-model=\"comment.text\"></textarea> </div> <button type=\"submit\" class=\"btn btn-primary\">Submit</button> </form> </div> <div class=\"well\" ng-show=\"!user\"> <h4>Please login to add comment to this post!</h4> </div> <hr> <!-- Posted Comments --> <!-- Comment --> <div class=\"media\" ng-repeat=\"comment in post.comments\"> <a class=\"pull-left\" href=\"#\"> <img class=\"media-object\" src=\"http://placehold.it/64x64\" alt=\"\"> </a> <div class=\"media-body\"> <h4 class=\"media-heading\">{{comment.user.name}} <small>{{comment.time|timeago}}</small> </h4> {{comment.text}} </div> </div> </div> <!-- Blog Sidebar Widgets Column --> <div class=\"col-md-4\"> <!-- Blog Search Well --> <div class=\"well\"> <h4>Simple Blog</h4> <p>It's very simple blog</p> <!-- /.input-group --> </div> <!-- Blog Categories Well --> <div class=\"well\"> <h4>Latest Post</h4> <div class=\"row\" ng-repeat=\"p in posts\"> <div class=\"col-xs-3 text-center\"> <a class=\"story-img\" href=\"#/post/{{p.id}}\"><img src=\"/api/files/{{p.image}}\" style=\"width:60px;height:60px\" class=\"img-circle\"></a> </div> <div class=\"col-xs-9\"> <a href=\"#/post/{{p.id}}\"><h4>{{p.title}}</h4></a> <div class=\"row\"> <div class=\"col-xs-9\"> <ul class=\"list-inline\"> <li>{{p.created_at|timeago}}</li> <li><i class=\"glyphicon glyphicon-comment\"></i> {{p.comments.length}} Comments </li></ul></div> </div> </div> </div> <!-- /.row --> </div> <!-- Side Widget Well --> <div class=\"well\"> <h4>Quote of this day</h4> <p style=\"font-style: italic\">“Life is not complex. We are complex. Life is simple, and the simple thing is the right thing.”</p> <p>— Oscar Wilde</p> </div> </div> </div> <!-- /.row -->"
   );
 
 

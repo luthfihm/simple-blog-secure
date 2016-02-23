@@ -8,7 +8,7 @@
  * Controller of the simpleBlogApp
  */
 angular.module('simpleBlogApp')
-  .controller('RegisterCtrl', function ($scope, $http, $window) {
+  .controller('RegisterCtrl', function ($scope, $http, $window, $rootScope) {
     $rootScope.title = "Simple Blog - Register";
     $scope.user = {};
     $scope.signup = function () {

@@ -8,7 +8,7 @@
  * Controller of the simpleBlogApp
  */
 angular.module('simpleBlogApp')
-  .controller('NewpostCtrl', function ($scope, $rootScope, Upload, $window) {
+  .controller('NewpostCtrl', function ($scope, $rootScope, Upload, $window, $http) {
     $rootScope.title = "Simple Blog - New Post";
     if ($rootScope.user != null) {
       $scope.post = {};

@@ -196,7 +196,7 @@ angular.module('simpleBlogApp')
  * Controller of the simpleBlogApp
  */
 angular.module('simpleBlogApp')
-  .controller('NewpostCtrl', ["$scope", "$rootScope", "Upload", "$window", function ($scope, $rootScope, Upload, $window) {
+  .controller('NewpostCtrl', ["$scope", "$rootScope", "Upload", "$window", "$http", function ($scope, $rootScope, Upload, $window, $http) {
     $rootScope.title = "Simple Blog - New Post";
     if ($rootScope.user != null) {
       $scope.post = {};
@@ -258,7 +258,7 @@ angular.module('simpleBlogApp')
  * Controller of the simpleBlogApp
  */
 angular.module('simpleBlogApp')
-  .controller('RegisterCtrl', ["$scope", "$http", "$window", function ($scope, $http, $window) {
+  .controller('RegisterCtrl', ["$scope", "$http", "$window", "$rootScope", function ($scope, $http, $window, $rootScope) {
     $rootScope.title = "Simple Blog - Register";
     $scope.user = {};
     $scope.signup = function () {

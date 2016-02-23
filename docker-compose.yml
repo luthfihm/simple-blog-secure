@@ -1,0 +1,36 @@
+nginx:
+  build: nginx-fpm
+  volumes_from:
+    - htdocs
+  ports:
+    - 8180:80
+  links:
+    - phpfpm
+phpfpm:
+  build: php-fpm-custom
+  links:
+    - db:mysql
+  volumes_from:
+    - htdocs
+    - db
+db:
+  image: mariadb
+  volumes:
+    - /var/run/mysqld
+  environment:
+    MYSQL_ROOT_PASSWORD: root
+phpmyadmin:
+  image: corbinu/docker-phpmyadmin
+  links:
+    - db:mysql
+  ports:
+    - 8181:80
+  environment:
+    MYSQL_USERNAME: root
+    MYSQL_ROOT_PASSWORD: root
+htdocs:
+  image: busybox
+  stdin_open: true
+  volumes:
+    - ./api:/var/www/html/api
+    - ./frontend/dist:/var/www/html/frontend/

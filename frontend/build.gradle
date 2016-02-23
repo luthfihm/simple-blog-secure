@@ -1,0 +1,66 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+//Include plugin grunt
+plugins {
+    id "com.moowork.grunt" version "0.10"
+}
+
+// settings for node
+node {
+  version = '0.12.10'
+  npmVersion = '2.14.9'
+  download = true
+}
+
+//npm dependencies caching for a faster build
+task npmCacheConfig(type: NpmTask) {
+    description = "Configure the NPM cache"
+    def npmCacheDir = "${gradle.getGradleUserHomeDir()}/caches/npm"
+    outputs.files file(npmCacheDir)
+    args = [ 'config', 'set', 'cache', npmCacheDir ]
+}
+
+//Install npm packages from
+task npmPackages(type: NpmTask, dependsOn: npmCacheConfig) {
+    description = "Install Node.js packages"
+    args = [ 'install' ]
+    inputs.files file('package.json')
+    outputs.files file('node_modules')
+}
+
+//Install bower components
+task bowerInstall(type: NodeTask) {
+    script = file('node_modules/bower/bin/bower')
+    args = ["--config.storage.cache=${gradle.getGradleUserHomeDir()}/caches/bower/cache",
+            "--config.storage.packages=${gradle.getGradleUserHomeDir()}/caches/bower/packages",
+            "--config.storage.registry=${gradle.getGradleUserHomeDir()}/caches/bower/registry",
+            'install']
+    inputs.files file('bower.json')
+    outputs.files file('bower_components')
+    dependsOn npmPackages
+}
+
+//Setup client project
+task setup (dependsOn: bowerInstall) {
+	println "Setup client side project."
+}
+
+//Client build project.
+task build(type: GruntTask, dependsOn: [installGrunt, bowerInstall]) {
+    description = "Build frontend project."
+    args = ["--force"]
+}
+
+//Client side project testing
+task test (type: GruntTask, dependsOn: installGrunt) {
+   description = "Runs karma unit tests."
+   args = ["test"]
+}
+
+//Clean client side project
+task clean (type: Delete) {
+    delete 'node_modules', 'bower_components', '.tmp', 'dist'
+    doLast {
+        println 'Client cleaned.'
+    }
+}

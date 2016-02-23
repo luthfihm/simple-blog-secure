@@ -1,0 +1,8 @@
+repositories {
+    jcenter()
+}
+
+task build {
+    dependsOn ':frontend:build'
+
+}

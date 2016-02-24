@@ -1,9 +1,12 @@
 nginx:
-  build: nginx-fpm
+  image: nginx
+  volumes:
+    - ./conf/default.conf:/etc/nginx/conf.d/default.conf
+    - ./ssl:/etc/nginx/ssl
   volumes_from:
     - htdocs
   ports:
-    - 8180:80
+    - 8180:443
   links:
     - phpfpm
 phpfpm:

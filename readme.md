@@ -59,6 +59,6 @@ Then, create database with name ```simple_blog``` and import ```simple_blog.sql`
 
 ## Running the Simple Blog
 ```
-http://localhost:8081 (linux)
-http://<boot2docker-ip>:8081 (Mac or Windows) (default : 192.168.99.100)
+https://localhost:8081 (linux)
+https://<boot2docker-ip>:8081 (Mac or Windows) (default : 192.168.99.100)
 ```
